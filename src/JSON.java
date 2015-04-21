@@ -19,15 +19,21 @@ import org.json.simple.parser.ParseException;
 
 public class JSON {
 
+    //Variables regarding the JSON object
     private long[] values;
     private String[] names;
     private String whichFuncReq = "";
 
-
+    //Variable sregarding the JSON file
     protected String path;
     protected String fileNa;
     private String fileExtension = ".txt";
 
+    /**
+     * COnstructor using a path/name of file to create a JSON object
+     * @param filePath String
+     * @param fileName String
+     */
     public JSON(String filePath, String fileName){
             //Open JSON
         this.path = filePath;
@@ -58,7 +64,12 @@ public class JSON {
 
     }
 
-
+    /**
+     * Constructor using two arrays and an integer to create a JSON object
+     * @param arr long [] containing data series
+     * @param nam String [] containing data names/labels
+     * @param fr  int setting the functional req. to be used
+     */
     public JSON (long []arr, String[] nam, int fr) {
         this.values = arr;
         this.names = nam;
@@ -72,6 +83,9 @@ public class JSON {
         }
     }
 
+    /**
+     * Method which creates a .json file given a JSON object instance
+     */
     public void outputFile(){
         JSONObject jsonObject = new JSONObject();
 
@@ -109,14 +123,34 @@ public class JSON {
 
     }
 
+    /**
+     * Getter of array of data series
+     * @return values
+     */
     public long[] getValues(){ return this.values; }
 
+    /**
+     * Getter of path String
+     * @return path
+     */
     public String getPath() { return path; }
 
+    /**
+     * Getter of file name String
+     * @return fileNa
+     */
     public String getFileNa() { return fileNa; }
 
+    /**
+     * Setter for path String
+     * @param path String
+     */
     public void setPath(String path) { this.path = path; }
 
+    /**
+     * Setter for file name String
+     * @param fileNa String
+     */
     public void setFileNa(String fileNa) { this.fileNa = fileNa; }
 
 }
