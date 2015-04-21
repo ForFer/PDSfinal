@@ -30,7 +30,7 @@ public class JSON {
     private String fileExtension = ".txt";
 
     /**
-     * COnstructor using a path/name of file to create a JSON object
+     * Constructor using a path/name of file to create a JSON object
      * @param filePath String
      * @param fileName String
      */
@@ -128,6 +128,14 @@ public class JSON {
      * @return values
      */
     public long[] getValues(){ return this.values; }
+
+    /**
+     * Getter of array of data names
+     * @return
+     */
+    public String[] getNames() {
+        return names;
+    }
 
     /**
      * Getter of path String

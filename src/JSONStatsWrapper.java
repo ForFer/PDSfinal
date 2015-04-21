@@ -10,6 +10,10 @@ public class JSONStatsWrapper {
     JSON json;
     JSON out;
 
+    /**
+     * Constructor of Wrapper given a JSON object
+     * @param in JSON
+     */
     public JSONStatsWrapper(JSON in) {
         json = in;
     }
@@ -47,12 +51,12 @@ public class JSONStatsWrapper {
                 break;
 
             //summation of xi - /x with exp
-            //Not developed, due to unnecesariness
+            //Not developed, out of scope in this assignment
             case 2:
                 break;
 
             //summation of (Xi - /x)(Yi - /y)
-            //Not developed, due to unnecesariness
+            //Not developed, out of scope in this assignment
             case 3:
                 break;
 
@@ -62,9 +66,8 @@ public class JSONStatsWrapper {
     }
 
     /**
-     * Compute quartiles, and percentiles if possible
-     * In the srs example given, it says calculate nearest, but, if it's the lower bound, it can be actually lower than
-     * the real n-th percentile/quartile, since it leaves behind less than n%
+     * Determines which distribution does a given data series follow
+     * and computes its characteristic values
      * @throws IOException
      */
     public void verification() throws IOException {
@@ -91,7 +94,7 @@ public class JSONStatsWrapper {
 
 
     /**
-     * Computation of mean, median, mode, geometric_mean, harmonic_mean
+     * Computes the 95% prediction interval of the data series
      * @throws IOException
      */
     public void predictionInterval() throws IOException {
