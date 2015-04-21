@@ -7,8 +7,6 @@ import java.io.BufferedWriter;
 
 //Date
 import java.util.Date;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 
 //JSON
@@ -24,7 +22,7 @@ public class JSON {
     private String[] names;
     private String whichFuncReq = "";
 
-    //Variable sregarding the JSON file
+    //Variables regarding the JSON file
     protected String path;
     protected String fileNa;
     private String fileExtension = ".txt";
@@ -89,7 +87,7 @@ public class JSON {
     public void outputFile(){
         JSONObject jsonObject = new JSONObject();
 
-        if(whichFuncReq=="_distribution_"){
+        if(whichFuncReq.equals("_distribution_")){
             for (int i = 0; i < names.length; i++) {
                 jsonObject.put(names[i], values[i]);
             }
@@ -131,7 +129,7 @@ public class JSON {
 
     /**
      * Getter of array of data names
-     * @return
+     * @return names
      */
     public String[] getNames() {
         return names;
