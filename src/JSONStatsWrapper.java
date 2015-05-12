@@ -38,8 +38,12 @@ public class JSONStatsWrapper {
         else {
             //Check distibution type
 
-            boolean isNormal = testChiSquare(a);
+            //Normal
+            double mean = 0, stdDev = 0;
+            boolean isNormal = testChiSquare(a, mean, stdDev);
 
+            //Exponential
+            //boolean isExp = testExp();
 
             out = new JSON(a, names, 1);
             out.setFileName(json.getFileName());
@@ -95,10 +99,10 @@ public class JSONStatsWrapper {
         bw.close();
     }
 
-    boolean testChiSquare(long [] a){
+    boolean testChiSquare(long [] a, double mean, double stdDev){
         //Compute mean and std. deviation
-        double mean = summation(a) / a.length;
-        double stdDev = Math.sqrt( 1/a.length * summation(a, mean, 2));
+        mean = summation(a) / a.length;
+        stdDev = Math.sqrt( 1/a.length * summation(a, mean, 2));
 
         //create array of integer data series
         int [] intValues = new int[a.length];
@@ -160,7 +164,7 @@ public class JSONStatsWrapper {
         ///IMPORTANTE, CAMBIAR
         ///IMPORTANTE, CAMBIAR
         //If within the value
-        if(chiSum<degree) isNormal = true;
+        if(chiSum<=degree) isNormal = true;
         else isNormal = false;
         return isNormal;
     }
