@@ -97,7 +97,7 @@ public class JSONStatsWrapper {
 
     boolean testChiSquare(long [] a){
         //Compute mean and std. deviation
-        long mean = summation(a) / a.length;
+        double mean = summation(a) / a.length;
         double stdDev = Math.sqrt( 1/a.length * summation(a, mean, 2));
 
         //create array of integer data series
@@ -128,20 +128,49 @@ public class JSONStatsWrapper {
         }
 
         //We compute now the density function and Chi-square for each unique
-        long densityFn [] = new long[uniques.size()];
-        long chisquare [] = new long[uniques.size()];
+        double densityFn [] = new double[uniques.size()];
+        double chisquare [] = new double[uniques.size()];
         for(int i=0; i<densityFn.length; i++){
-            densityFn[i] = (long) (1 / (stdDev * Math.sqrt(2 * Math.PI)) *
+            densityFn[i] = (1 / (stdDev * Math.sqrt(2 * Math.PI)) *
                     (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
 
-            chisquare[i] = (long) (Math.pow((frequency.get(i) - densityFn[i] * 100), 2) / (densityFn[i] * 100));
+            chisquare[i] = (Math.pow((frequency.get(i) - densityFn[i] * 100), 2) / (densityFn[i] * 100));
         }
-        long chiSum = summation(chisquare);
+        double chiSum = summation(chisquare);
 
         //Determine whether it's normal or not
         boolean isNormal;
 
+        ///IMPORTANTE, CAMBIAR
+        ///IMPORTANTE, CAMBIAR
+        ///IMPORTANTE, CAMBIAR
+        ///IMPORTANTE, CAMBIAR
+        ///IMPORTANTE, CAMBIAR
+
+        int degreesOfFreedom ;
+        double significance = 0.05;
+        double degree = ChiTable(degreesOfFreedom, significance);
+        
+        ///IMPORTANTE, CAMBIAR
+        ///IMPORTANTE, CAMBIAR
+        ///IMPORTANTE, CAMBIAR
+        //If within the value
+        if(chiSum<degree) isNormal = true;
+        else isNormal = false;
         return isNormal;
+    }
+
+    /**
+     * Computes the summation of one data array
+     * @param arr array of data to sum
+     * @return result of summation (long)
+     */
+    public double summation(double[] arr) {
+        double sum = 0;
+        for (int n = 0; n < arr.length; n++) {
+            sum = sum + arr[n];
+        }
+        return sum;
     }
 
     /**
@@ -163,10 +192,10 @@ public class JSONStatsWrapper {
      * @param arr array of data to sum
      * @return result of summation (long)
      */
-    public long summation(long [] arr, long subtract, int exp){
-        long sum = 0;
+    public double summation(double [] arr, double subtract, int exp){
+        double sum = 0;
         for (int n = 0; n < arr.length; n++) {
-            sum = sum + ((arr[n] - subtract) ^ exp);
+            sum = sum + ( Math.pow( (arr[n] - subtract), exp) );
         }
         return sum;
     }
@@ -176,10 +205,10 @@ public class JSONStatsWrapper {
      * @param arr array of data to sum
      * @return result of summation (long)
      */
-    public long summation (long [] arr, int numerator, int exp) {
-        long sum = 0;
+    public double summation (double [] arr, int numerator, int exp) {
+        double sum = 0;
         for (int n = 0; n < arr.length; n++) {
-            sum = sum + ( 1 / (arr[n]) ^ exp);
+            sum = sum + ( 1 / Math.pow( (arr[n]) , exp));
         }
         return sum;
     }
@@ -191,13 +220,13 @@ public class JSONStatsWrapper {
      * @param arr2 array of data to sum in denominator
      * @return result of summation (long)
      */
-    public long summation (long [] arr1, long [] arr2, long sub1, long sub2, int exp1, int exp2) {
-        long sum = 0;
+    public double summation (double [] arr1, double [] arr2, double sub1, double sub2, int exp1, int exp2) {
+        double sum = 0;
         if(arr1.length!=arr2.length) {
 
         }
         for (int n = 0; n < arr1.length; n++) {
-            sum = sum + (((arr1[n] - sub1) ^ exp1) / ((arr2[n] - sub2) ^ exp2));
+            sum = sum + (Math.pow( (arr1[n] - sub1), exp1) / Math.pow((arr2[n] - sub2) , exp2));
         }
         return sum;
     }
