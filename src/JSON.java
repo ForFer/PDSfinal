@@ -145,7 +145,7 @@ public class JSON {
      * Getter of file name String
      * @return fileNa
      */
-    public String getFileNa() { return fileNa; }
+    public String getFileName() { return fileNa; }
 
     /**
      * Setter for path String
@@ -157,6 +157,6 @@ public class JSON {
      * Setter for file name String
      * @param fileNa String
      */
-    public void setFileNa(String fileNa) { this.fileNa = fileNa; }
+    public void setFileName(String fileNa) { this.fileNa = fileNa; }
 
 }
