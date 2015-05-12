@@ -147,10 +147,15 @@ public class JSONStatsWrapper {
         ///IMPORTANTE, CAMBIAR
         ///IMPORTANTE, CAMBIAR
 
-        int degreesOfFreedom ;
-        double significance = 0.05;
-        double degree = ChiTable(degreesOfFreedom, significance);
-        
+        int degreesOfFreedom = a.length;
+        if(degreesOfFreedom>120) degreesOfFreedom=120;
+        double chiTable [] = {3.841, 5.991, 7.815, 9.488, 11.071, 12.592, 14.067, 15.507, 16.919, 18.307,
+        19.675, 21.026, 22.362, 23.685, 24.996, 26.296, 27.587, 28.869, 30.144, 31.410,
+        32.671, 33.924, 35.172, 36.415, 37.652, 38.885, 40.113, 41.337, 42.557, 43.773,
+        44.985, 46.194, 47.4, 48.602, 49.802, 55.758, 67.505, 79.082, 90.531, 101.879,
+        113.145, 124.145, 135.480, 146.567};
+        double degree = chiTable[degreesOfFreedom-1];
+
         ///IMPORTANTE, CAMBIAR
         ///IMPORTANTE, CAMBIAR
         ///IMPORTANTE, CAMBIAR
@@ -192,7 +197,7 @@ public class JSONStatsWrapper {
      * @param arr array of data to sum
      * @return result of summation (long)
      */
-    public double summation(double [] arr, double subtract, int exp){
+    public double summation(long [] arr, double subtract, int exp){
         double sum = 0;
         for (int n = 0; n < arr.length; n++) {
             sum = sum + ( Math.pow( (arr[n] - subtract), exp) );
