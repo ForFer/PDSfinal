@@ -38,51 +38,34 @@ public class JSONStatsWrapper {
         }
         else {
             //Check distibution type
-
-            //Normal
             double mean = 0, stdDev = 0;
-            boolean isNormal = testChiSquare(a, mean, stdDev);
-            if(isNormal){
+            int isWhichDistr = testChiSquare(a, mean, stdDev);
+
+            //If normal
+            if(isWhichDistr==0){
                 values = new double[3];
                 values[0] = 0;
                 values[1] = mean;
                 values[2] = stdDev;
             }
-            else {
-                //Exponential
-                boolean isExp = testExp(mean, stdDev);
-                if(isExp){
-                    values = new double[3];
-                    values[0] = 0;
-                    values[1] = mean;
-                    values[2] = stdDev;
-                }
-                else{
-                    //Binomial
-                    boolean isBin;
-                    if(isBin){
-                        values = new double[3];
-                        values[0] = 0;
-                        values[1] = mean;
-                        values[2] = stdDev;
-                    }
-                    else{
-                        //Students T
-                        boolean isStud;
-                        if(isStud){
-                            values = new double[3];
-                            values[0] = 0;
-                            values[1] = mean;
-                            values[2] = stdDev;
-                        }
-                        else{
-                            //Not following any
+            //If Exponential
+            else if(isWhichDistr==1){
 
-                        }
-                    }
-                }
+            }
+            //If Binomial
+            else if(isWhichDistr==2){
+
+            }
+            //If Student's T
+            else if(isWhichDistr==3){
+
+            }
+            //If not following any
+            else{
+
             }
 
+            //generate output JSON
             out = new JSON(values, names, 1);
             out.setFileName(json.getFileName());
             out.setPath(json.getPath());
@@ -145,7 +128,15 @@ public class JSONStatsWrapper {
         bw.close();
     }
 
-    boolean testChiSquare(long [] a, double mean, double stdDev){
+
+    /**
+     * Function which tests which distribution does a data list belong to, if any.
+     * @param a         input data list
+     * @param mean      variable referenced from verification() method
+     * @param stdDev    variable referenced from verification() method
+     * @return
+     */
+    int testChiSquare(long [] a, double mean, double stdDev){
         //Compute mean and std. deviation
         mean = summation(a) / a.length;
         stdDev = Math.sqrt( 1/a.length * summation(a, mean, 2));
@@ -180,37 +171,56 @@ public class JSONStatsWrapper {
         //We compute now the density function and Chi-square for each unique
         double densityFn [] = new double[uniques.size()];
         double chisquare [] = new double[uniques.size()];
-        for(int i=0; i<densityFn.length; i++){
-            densityFn[i] = (1 / (stdDev * Math.sqrt(2 * Math.PI)) *
-                    (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
+        int isWhichDistribution = -1;
 
-            chisquare[i] = (Math.pow((frequency.get(i) - densityFn[i] * 100), 2) / (densityFn[i] * 100));
+        for(int j=0; j<4; j++){
+
+            for(int i=0; i<densityFn.length; i++){
+                densityFn[i] = densityFunction(uniques, stdDev, mean, i, a);
+                chisquare[i] = (Math.pow((frequency.get(i) - densityFn[i] * 100), 2) / (densityFn[i] * 100));
+            }
+            double chiSum = summation(chisquare);
+
+
+
+            int degreesOfFreedom = a.length-1;
+            if(degreesOfFreedom>120) degreesOfFreedom=120-1;
+            double chiTable [] = {3.841, 5.991, 7.815, 9.488, 11.071, 12.592, 14.067, 15.507, 16.919, 18.307,
+                    19.675, 21.026, 22.362, 23.685, 24.996, 26.296, 27.587, 28.869, 30.144, 31.410,
+                    32.671, 33.924, 35.172, 36.415, 37.652, 38.885, 40.113, 41.337, 42.557, 43.773,
+                    44.985, 46.194, 47.4, 48.602, 49.802, 55.758, 67.505, 79.082, 90.531, 101.879,
+                    113.145, 124.145, 135.480, 146.567};
+            double degree = chiTable[degreesOfFreedom-1];
+
+            //If within the value
+            if(chiSum<=degree) isWhichDistribution = j;
+            return isWhichDistribution;
         }
-        double chiSum = summation(chisquare);
-
-        //Determine whether it's normal or not
-        boolean isNormal;
-
-        int degreesOfFreedom = a.length-1;
-        if(degreesOfFreedom>120) degreesOfFreedom=120-1;
-        double chiTable [] = {3.841, 5.991, 7.815, 9.488, 11.071, 12.592, 14.067, 15.507, 16.919, 18.307,
-        19.675, 21.026, 22.362, 23.685, 24.996, 26.296, 27.587, 28.869, 30.144, 31.410,
-        32.671, 33.924, 35.172, 36.415, 37.652, 38.885, 40.113, 41.337, 42.557, 43.773,
-        44.985, 46.194, 47.4, 48.602, 49.802, 55.758, 67.505, 79.082, 90.531, 101.879,
-        113.145, 124.145, 135.480, 146.567};
-        double degree = chiTable[degreesOfFreedom-1];
-
-        //If within the value
-        if(chiSum<=degree) isNormal = true;
-        else isNormal = false;
-        return isNormal;
+        return isWhichDistribution;
     }
 
-    public boolean testExp(double mean, double stdDev){
 
-
-        boolean isExp = true;
-        return isExp;
+    /**
+     * Function which returns the density Function of the required distribution type
+     * @param uniques   data list used for computations
+     * @param stdDev    variable referenced from verification() method
+     * @param mean      variable referenced from verification() method
+     * @param i         used for computing for each data from list
+     * @param j         determines distribution type
+     * @return
+     */
+    public double densityFunction(ArrayList<Integer> uniques, double stdDev, double mean, int i, int j){
+        switch(j){
+            case 0://Normal
+                return (1 / (stdDev * Math.sqrt(2 * Math.PI)) * (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
+            case 1://Exponential
+                return (1 / (stdDev * Math.sqrt(2 * Math.PI)) * (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
+            case 2://Binomial
+                return (1 / (stdDev * Math.sqrt(2 * Math.PI)) * (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
+            case 3://Student's T
+                return (1 / (stdDev * Math.sqrt(2 * Math.PI)) * (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
+        }
+        return -1;
     }
 
     /**
@@ -249,37 +259,6 @@ public class JSONStatsWrapper {
         double sum = 0;
         for (int n = 0; n < arr.length; n++) {
             sum = sum + ( Math.pow( (arr[n] - subtract), exp) );
-        }
-        return sum;
-    }
-
-    /**
-     * Computes the summation of one data array inverted (SUMMATION: 1/xi)
-     * @param arr array of data to sum
-     * @return result of summation (long)
-     */
-    public double summation (double [] arr, int numerator, int exp) {
-        double sum = 0;
-        for (int n = 0; n < arr.length; n++) {
-            sum = sum + ( 1 / Math.pow( (arr[n]) , exp));
-        }
-        return sum;
-    }
-
-    /**
-     * Computes the summation of one data array divided by another,
-     * with subtracter value at each step and exponent
-     * @param arr1 array of data to sum in numerator
-     * @param arr2 array of data to sum in denominator
-     * @return result of summation (long)
-     */
-    public double summation (double [] arr1, double [] arr2, double sub1, double sub2, int exp1, int exp2) {
-        double sum = 0;
-        if(arr1.length!=arr2.length) {
-
-        }
-        for (int n = 0; n < arr1.length; n++) {
-            sum = sum + (Math.pow( (arr1[n] - sub1), exp1) / Math.pow((arr2[n] - sub2) , exp2));
         }
         return sum;
     }
