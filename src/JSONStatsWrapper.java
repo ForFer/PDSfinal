@@ -193,8 +193,10 @@ public class JSONStatsWrapper {
             double degree = chiTable[degreesOfFreedom-1];
 
             //If within the value
-            if(chiSum<=degree) isWhichDistribution = j;
-            return isWhichDistribution;
+            if(chiSum<=degree) {
+                isWhichDistribution = j;
+                return isWhichDistribution;
+            }
         }
         return isWhichDistribution;
     }
