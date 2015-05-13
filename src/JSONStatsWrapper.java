@@ -230,11 +230,22 @@ public class JSONStatsWrapper {
             case 0://Normal
                 return (1 / (stdDev * Math.sqrt(2 * Math.PI)) * (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
             case 1://Exponential
-                return (1 / (stdDev * Math.sqrt(2 * Math.PI)) * (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
+                return  (1/mean) * Math.pow(Math.E, (-1 * (1/mean) * uniques.get(i))) ;
+
+            /**FINISH THIS SHIT!!!!!!!!!!
+            ///FINISH THIS SHIT!!!!!!!!!!
+            ///FINISH THIS SHIT!!!!!!!!!!
+            ///FINISH THIS SHIT!!!!!!!!!!
+
             case 2://Binomial
-                return (1 / (stdDev * Math.sqrt(2 * Math.PI)) * (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
+                return 0;
             case 3://Student's T
-                return (1 / (stdDev * Math.sqrt(2 * Math.PI)) * (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
+                return 0;
+            ///FINISH THIS SHIT!!!!!!!!!!
+            ///FINISH THIS SHIT!!!!!!!!!!
+            ///FINISH THIS SHIT!!!!!!!!!!
+            ///FINISH THIS SHIT!!!!!!!!!!**/
+
         }
         return -1;
     }
