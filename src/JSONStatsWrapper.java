@@ -1,3 +1,5 @@
+import sun.invoke.util.Wrapper;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -5,6 +7,7 @@ import java.io.IOException;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.DoubleSummaryStatistics;
 
 public class JSONStatsWrapper {
 
@@ -29,9 +32,9 @@ public class JSONStatsWrapper {
         //We start by retrieving the array from the JSON
         double[] a = json.getValues();
         String[] names = new String[2];
-        names[0] = "Distribution";
+        names[0] = "Distribution: ";
         names[1] = "Characteristic values";
-        double values [] = new double[3];
+        double values [];
 
         if(a.length<20 || a.length > 100000000){
             errorOutput();
@@ -39,30 +42,44 @@ public class JSONStatsWrapper {
         else {
             //Check distibution type
             double mean = 0, stdDev = 0;
-            int isWhichDistr = testChiSquare(a, mean, stdDev, a.length);
+            ArrayList<Double> arr = testChiSquare(a, mean, stdDev, a.length);
+            double isWhichDistr = arr.get(0);
+            mean = arr.get(1);
+            stdDev = arr.get(2);
 
-            //If normal
-            if(isWhichDistr==0){
+            switch ((int) isWhichDistr) {
 
-                values[0] = 0;
-                values[1] = (long) mean;
-                values[2] = (long) stdDev;
-            }
-            //If Exponential
-            else if(isWhichDistr==1){
+                case 0://If Normal
+                    values = new double[2];
+                    names[0] = names[0] + "Normal";
+                    values[0] = mean; //Mean
+                    values[1] = stdDev; //Standard Deviation
+                    break;
 
-            }
-            //If Binomial
-            else if(isWhichDistr==2){
+                case 1://If Exponential
+                    names[0] = names[0] + "Exponential";
+                    values = new double[1];
+                    values[0] = 1/mean; //this is Rate
+                    break;
 
-            }
-            //If Student's T
-            else if(isWhichDistr==3){
+                case 2://If Binomial
+                    names[0] = names[0] + "Binomial";
+                    values = new double [2];
+                    values[0] = a.length; //This is n
+                    values[1] = mean / a.length; //This is p
+                    break;
 
-            }
-            //If not following any
-            else{
+                case 3://If Student's T
+                    names[0] = names[0] + "Student's T";
+                    values = new double[1];
+                    values[0] = a.length-1; //this is Degrees of freedom
+                    break;
 
+                default://If not following any
+                    names[0] = names[0] + "None";
+                    values = new double[1];
+                    values[0] = -1;
+                    break;
             }
 
             //generate output JSON
@@ -91,7 +108,7 @@ public class JSONStatsWrapper {
         else {
             //Compute mean and std. deviation
             double mean = summation(a) / a.length;
-            double stdDev = Math.sqrt( 1/a.length * summation(a, mean, 2));
+            double stdDev = Math.sqrt(1 / a.length * summation(a, mean, 2));
 
             //Compute 95% prediction interval (z from normal distr)
             double zValue = 1.96;
@@ -136,10 +153,7 @@ public class JSONStatsWrapper {
      * @param stdDev    variable referenced from verification() method
      * @return
      */
-    private int testChiSquare(double [] a, double mean, double stdDev, int degreesOfFreedom){
-        //Compute mean and std. deviation
-        mean = summation(a) / a.length;
-        stdDev = Math.sqrt( 1/a.length * summation(a, mean, 2));
+    private ArrayList<Double> testChiSquare(double [] a, double mean, double stdDev, int degreesOfFreedom){
 
         //create array of integer data series
         int [] intValues = new int[a.length];
@@ -184,10 +198,31 @@ public class JSONStatsWrapper {
         //Loop checking fitting for all possible Distributions
         for(int j=0; j<4; j++){
 
+            //Compute mean
+            for(int i=0; i<uniques.size(); i++){
+                mean = mean + (uniques.get(i) * ( frequency.get(i) / a.length ));
+            }
+
+            //Compute std dev and extras for each possible distr.
+            switch(j){
+                case 0://Normal
+                    stdDev = Math.sqrt( 1/a.length * summation(a, mean, 2)); break;
+
+                case 1://Exponential
+                    stdDev = 1/mean; break;
+
+                case 2://Binomial
+                    double p = mean / a.length;
+                    stdDev = a.length * p * (1 - p); break;
+
+                case 3://Student's T
+                    stdDev = Math.sqrt((a.length-1)/(a.length-3)); break;
+            }
+
             //loop computing density function and chi square for each datum
             for(int i=0; i<densityFn.length; i++){
-                densityFn[i] = densityFunction(uniques, stdDev, mean, i, j);
-                chisquare[i] = (Math.pow((frequency.get(i) - densityFn[i] * 100), 2) / (densityFn[i] * 100));
+                densityFn[i] = densityFunction(uniques, stdDev, mean, i, j, a.length);
+                chisquare[i] = (Math.pow((frequency.get(i) - densityFn[i] * a.length), 2) / (densityFn[i] * a.length));
             }
             double chiSum = summation(chisquare);
 
@@ -208,10 +243,16 @@ public class JSONStatsWrapper {
             //If within the value
             if(chiSum<=degree) {
                 isWhichDistribution = j;
-                return isWhichDistribution;
+                //Exit loop
+                break;
             }
         }
-        return isWhichDistribution;
+        //Put result in arraylist
+        ArrayList<Double> result = new ArrayList<>(3);
+        result.add((double) isWhichDistribution);
+        result.add(mean);
+        result.add(stdDev);
+        return result;
     }
 
 
@@ -224,27 +265,21 @@ public class JSONStatsWrapper {
      * @param j         determines distribution type
      * @return
      */
-    private double densityFunction(ArrayList<Integer> uniques, double stdDev, double mean, int i, int j){
+    private double densityFunction(ArrayList<Integer> uniques, double stdDev, double mean, int i, int j, int samplesize){
         switch(j){
             case 0://Normal
                 return (1 / (stdDev * Math.sqrt(2 * Math.PI)) * (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
+
             case 1://Exponential
                 return  (1/mean) * Math.pow(Math.E, (-1 * (1/mean) * uniques.get(i))) ;
 
-            /**FINISH THIS SHIT!!!!!!!!!!
-            ///FINISH THIS SHIT!!!!!!!!!!
-            ///FINISH THIS SHIT!!!!!!!!!!
-            ///FINISH THIS SHIT!!!!!!!!!!
-
             case 2://Binomial
-                return 0;
-            case 3://Student's T
-                return 0;
-            ///FINISH THIS SHIT!!!!!!!!!!
-            ///FINISH THIS SHIT!!!!!!!!!!
-            ///FINISH THIS SHIT!!!!!!!!!!
-            ///FINISH THIS SHIT!!!!!!!!!!**/
+                return factorial(samplesize) / (factorial(uniques.get(i)) * factorial(samplesize - uniques.get(i))) *
+                        Math.pow(mean/samplesize, uniques.get(i)) * Math.pow(1 -  mean/samplesize, samplesize - uniques.get(i));
 
+            case 3://Student's T
+                return factorial((samplesize+1) / 2 - 1) / ( Math.sqrt(samplesize*Math.PI) * factorial(samplesize/2 -1)) *
+                        Math.pow(1 + (uniques.get(i)/samplesize), -1*(samplesize+1)/2 );
         }
         return -1;
     }
@@ -276,4 +311,15 @@ public class JSONStatsWrapper {
         return sum;
     }
 
+    /**
+     * Function which computes the factorial of a given double param
+     * @param n
+     * @return
+     */
+    public double factorial(double n){
+        if( n <= 1 )
+            return 1;
+        else
+            return n * factorial(n - 1);
+    }
 }
