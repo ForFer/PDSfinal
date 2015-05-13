@@ -39,7 +39,7 @@ public class JSONStatsWrapper {
         else {
             //Check distibution type
             double mean = 0, stdDev = 0;
-            int isWhichDistr = testChiSquare(a, mean, stdDev);
+            int isWhichDistr = testChiSquare(a, mean, stdDev, a.length);
 
             //If normal
             if(isWhichDistr==0){
@@ -136,7 +136,7 @@ public class JSONStatsWrapper {
      * @param stdDev    variable referenced from verification() method
      * @return
      */
-    private int testChiSquare(double [] a, double mean, double stdDev){
+    private int testChiSquare(double [] a, double mean, double stdDev, int degreesOfFreedom){
         //Compute mean and std. deviation
         mean = summation(a) / a.length;
         stdDev = Math.sqrt( 1/a.length * summation(a, mean, 2));
@@ -192,7 +192,6 @@ public class JSONStatsWrapper {
             double chiSum = summation(chisquare);
 
             //Set degrees of freedom to check in fitting table
-            int degreesOfFreedom = a.length-1;
             if(degreesOfFreedom>=35 && degreesOfFreedom<40) degreesOfFreedom=35;
             else if(degreesOfFreedom>=40 && degreesOfFreedom<50) degreesOfFreedom=36;
             else if(degreesOfFreedom>=50 && degreesOfFreedom<60) degreesOfFreedom=37;
