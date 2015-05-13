@@ -173,23 +173,37 @@ public class JSONStatsWrapper {
         double chisquare [] = new double[uniques.size()];
         int isWhichDistribution = -1;
 
+        //Table used for fitting
+        //Source: http://www.statext.com/tables/Chi-SquareTable(GreaterThanChi).jpg
+        double chiTable [] = {3.841, 5.991, 7.815, 9.488, 11.071, 12.592, 14.067, 15.507, 16.919, 18.307,
+                19.675, 21.026, 22.362, 23.685, 24.996, 26.296, 27.587, 28.869, 30.144, 31.410,
+                32.671, 33.924, 35.172, 36.415, 37.652, 38.885, 40.113, 41.337, 42.557, 43.773,
+                44.985, 46.194, 47.4, 48.602, 49.802, 55.758, 67.505, 79.082, 90.531, 101.879,
+                113.145, 124.145, 135.480, 146.567};
+
+        //Loop checking fitting for all possible Distributions
         for(int j=0; j<4; j++){
 
+            //loop computing density function and chi square for each datum
             for(int i=0; i<densityFn.length; i++){
                 densityFn[i] = densityFunction(uniques, stdDev, mean, i, j);
                 chisquare[i] = (Math.pow((frequency.get(i) - densityFn[i] * 100), 2) / (densityFn[i] * 100));
             }
             double chiSum = summation(chisquare);
 
-
-
+            //Set degrees of freedom to check in fitting table
             int degreesOfFreedom = a.length-1;
-            if(degreesOfFreedom>120) degreesOfFreedom=120-1;
-            double chiTable [] = {3.841, 5.991, 7.815, 9.488, 11.071, 12.592, 14.067, 15.507, 16.919, 18.307,
-                    19.675, 21.026, 22.362, 23.685, 24.996, 26.296, 27.587, 28.869, 30.144, 31.410,
-                    32.671, 33.924, 35.172, 36.415, 37.652, 38.885, 40.113, 41.337, 42.557, 43.773,
-                    44.985, 46.194, 47.4, 48.602, 49.802, 55.758, 67.505, 79.082, 90.531, 101.879,
-                    113.145, 124.145, 135.480, 146.567};
+            if(degreesOfFreedom>=35 && degreesOfFreedom<40) degreesOfFreedom=35;
+            else if(degreesOfFreedom>=40 && degreesOfFreedom<50) degreesOfFreedom=36;
+            else if(degreesOfFreedom>=50 && degreesOfFreedom<60) degreesOfFreedom=37;
+            else if(degreesOfFreedom>=60 && degreesOfFreedom<70) degreesOfFreedom=38;
+            else if(degreesOfFreedom>=70 && degreesOfFreedom<80) degreesOfFreedom=39;
+            else if(degreesOfFreedom>=80 && degreesOfFreedom<90) degreesOfFreedom=40;
+            else if(degreesOfFreedom>=90 && degreesOfFreedom<100) degreesOfFreedom=41;
+            else if(degreesOfFreedom>=100 && degreesOfFreedom<110) degreesOfFreedom=42;
+            else if(degreesOfFreedom>=110 && degreesOfFreedom<120) degreesOfFreedom=43;
+            else if(degreesOfFreedom>120) degreesOfFreedom=44;
+
             double degree = chiTable[degreesOfFreedom-1];
 
             //If within the value
