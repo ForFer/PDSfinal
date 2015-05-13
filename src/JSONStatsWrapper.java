@@ -27,11 +27,11 @@ public class JSONStatsWrapper {
     public void verification() throws IOException {
 
         //We start by retrieving the array from the JSON
-        long[] a = json.getValues();
+        double[] a = json.getValues();
         String[] names = new String[2];
         names[0] = "Distribution";
         names[1] = "Characteristic values";
-        double values [];
+        double values [] = new double[3];
 
         if(a.length<20 || a.length > 100000000){
             errorOutput();
@@ -43,10 +43,10 @@ public class JSONStatsWrapper {
 
             //If normal
             if(isWhichDistr==0){
-                values = new double[3];
+
                 values[0] = 0;
-                values[1] = mean;
-                values[2] = stdDev;
+                values[1] = (long) mean;
+                values[2] = (long) stdDev;
             }
             //If Exponential
             else if(isWhichDistr==1){
@@ -80,7 +80,7 @@ public class JSONStatsWrapper {
      */
     public void predictionInterval() throws IOException {
 
-        long[] a = json.getValues();
+        double[] a = json.getValues();
         String [] distr = {"Predicted interval"};
         int jsonSize = a.length;
 
@@ -95,9 +95,9 @@ public class JSONStatsWrapper {
 
             //Compute 95% prediction interval (z from normal distr)
             double zValue = 1.96;
-            long bounds [] = new long [2];
-            bounds[0] = (long) (mean - (zValue * stdDev));
-            bounds[1] = (long) (mean + (zValue * stdDev));
+            double bounds [] = new double [2];
+            bounds[0] = mean - (zValue * stdDev);
+            bounds[1] = mean + (zValue * stdDev);
 
             //generate output JSON
             out = new JSON(bounds, distr, 2);
@@ -115,7 +115,7 @@ public class JSONStatsWrapper {
         Date date = new Date();
         String content = "Quantity of elements in series out of bounds (min: 30, max: 10⁸)" + "\n";
         File file = new File(json.getPath() + json.getFileName() + "_ERROR_" + date + "txt");
-        long []a = json.getValues();
+        double []a = json.getValues();
 
         // if file doesn't exists, then create it
         if (!file.exists()) {
@@ -136,7 +136,7 @@ public class JSONStatsWrapper {
      * @param stdDev    variable referenced from verification() method
      * @return
      */
-    int testChiSquare(long [] a, double mean, double stdDev){
+    private int testChiSquare(double [] a, double mean, double stdDev){
         //Compute mean and std. deviation
         mean = summation(a) / a.length;
         stdDev = Math.sqrt( 1/a.length * summation(a, mean, 2));
@@ -176,7 +176,7 @@ public class JSONStatsWrapper {
         for(int j=0; j<4; j++){
 
             for(int i=0; i<densityFn.length; i++){
-                densityFn[i] = densityFunction(uniques, stdDev, mean, i, a);
+                densityFn[i] = densityFunction(uniques, stdDev, mean, i, j);
                 chisquare[i] = (Math.pow((frequency.get(i) - densityFn[i] * 100), 2) / (densityFn[i] * 100));
             }
             double chiSum = summation(chisquare);
@@ -209,7 +209,7 @@ public class JSONStatsWrapper {
      * @param j         determines distribution type
      * @return
      */
-    public double densityFunction(ArrayList<Integer> uniques, double stdDev, double mean, int i, int j){
+    private double densityFunction(ArrayList<Integer> uniques, double stdDev, double mean, int i, int j){
         switch(j){
             case 0://Normal
                 return (1 / (stdDev * Math.sqrt(2 * Math.PI)) * (Math.exp(-1/2 * Math.pow((uniques.get(i) - mean), 2) / stdDev)));
@@ -238,24 +238,11 @@ public class JSONStatsWrapper {
 
     /**
      * Computes the summation of one data array
-     * @param arr array of data to sum
-     * @return result of summation (long)
-     */
-    public long summation(long[] arr) {
-        long sum = 0;
-        for (int n = 0; n < arr.length; n++) {
-            sum = sum + arr[n];
-        }
-        return sum;
-    }
-
-    /**
-     * Computes the summation of one data array
      * with subtracted value at each step and exponent
      * @param arr array of data to sum
      * @return result of summation (long)
      */
-    public double summation(long [] arr, double subtract, int exp){
+    public double summation(double [] arr, double subtract, int exp){
         double sum = 0;
         for (int n = 0; n < arr.length; n++) {
             sum = sum + ( Math.pow( (arr[n] - subtract), exp) );

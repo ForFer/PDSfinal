@@ -18,7 +18,7 @@ import org.json.simple.parser.ParseException;
 public class JSON {
 
     //Variables regarding the JSON object
-    private long[] values;
+    private double[] values;
     private String[] names;
     private String whichFuncReq = "";
 
@@ -49,7 +49,7 @@ public class JSON {
                 jsonObject = (JSONObject) jsonParser.parse(InputReader);
                 JSONArray jArray = (JSONArray) jsonObject.get("dataseries");
                 //Store data into our array values
-                values = new long[jArray.size()];
+                values = new double[jArray.size()];
                 for (int i = 0; i < jArray.size(); i++) {
                     values[i] = (long) jArray.get(i);
                 }
@@ -68,7 +68,7 @@ public class JSON {
      * @param nam String [] containing data names/labels
      * @param fr  int setting the functional req. to be used
      */
-    public JSON (long []arr, String[] nam, int fr) {
+    public JSON (double []arr, String[] nam, int fr) {
         this.values = arr;
         this.names = nam;
         switch (fr) {
@@ -125,7 +125,7 @@ public class JSON {
      * Getter of array of data series
      * @return values
      */
-    public long[] getValues(){ return this.values; }
+    public double[] getValues(){ return this.values; }
 
     /**
      * Getter of array of data names
