@@ -31,6 +31,7 @@ public class JSONStatsWrapper {
         String[] names = new String[2];
         names[0] = "Distribution";
         names[1] = "Characteristic values";
+        double values [];
 
         if(a.length<20 || a.length > 100000000){
             errorOutput();
@@ -41,11 +42,48 @@ public class JSONStatsWrapper {
             //Normal
             double mean = 0, stdDev = 0;
             boolean isNormal = testChiSquare(a, mean, stdDev);
+            if(isNormal){
+                values = new double[3];
+                values[0] = 0;
+                values[1] = mean;
+                values[2] = stdDev;
+            }
+            else {
+                //Exponential
+                boolean isExp = testExp(mean, stdDev);
+                if(isExp){
+                    values = new double[3];
+                    values[0] = 0;
+                    values[1] = mean;
+                    values[2] = stdDev;
+                }
+                else{
+                    //Binomial
+                    boolean isBin;
+                    if(isBin){
+                        values = new double[3];
+                        values[0] = 0;
+                        values[1] = mean;
+                        values[2] = stdDev;
+                    }
+                    else{
+                        //Students T
+                        boolean isStud;
+                        if(isStud){
+                            values = new double[3];
+                            values[0] = 0;
+                            values[1] = mean;
+                            values[2] = stdDev;
+                        }
+                        else{
+                            //Not following any
 
-            //Exponential
-            //boolean isExp = testExp();
+                        }
+                    }
+                }
+            }
 
-            out = new JSON(a, names, 1);
+            out = new JSON(values, names, 1);
             out.setFileName(json.getFileName());
             out.setPath(json.getPath());
             out.outputFile();
@@ -68,10 +106,18 @@ public class JSONStatsWrapper {
             errorOutput();
         }
         else {
-            //Check distibution type
+            //Compute mean and std. deviation
+            double mean = summation(a) / a.length;
+            double stdDev = Math.sqrt( 1/a.length * summation(a, mean, 2));
 
+            //Compute 95% prediction interval (z from normal distr)
+            double zValue = 1.96;
+            long bounds [] = new long [2];
+            bounds[0] = (long) (mean - (zValue * stdDev));
+            bounds[1] = (long) (mean + (zValue * stdDev));
 
-            out = new JSON(a, distr, 2);
+            //generate output JSON
+            out = new JSON(bounds, distr, 2);
             out.setFileName(json.getFileName());
             out.setPath(json.getPath());
             out.outputFile();
@@ -145,14 +191,8 @@ public class JSONStatsWrapper {
         //Determine whether it's normal or not
         boolean isNormal;
 
-        ///IMPORTANTE, CAMBIAR
-        ///IMPORTANTE, CAMBIAR
-        ///IMPORTANTE, CAMBIAR
-        ///IMPORTANTE, CAMBIAR
-        ///IMPORTANTE, CAMBIAR
-
-        int degreesOfFreedom = a.length;
-        if(degreesOfFreedom>120) degreesOfFreedom=120;
+        int degreesOfFreedom = a.length-1;
+        if(degreesOfFreedom>120) degreesOfFreedom=120-1;
         double chiTable [] = {3.841, 5.991, 7.815, 9.488, 11.071, 12.592, 14.067, 15.507, 16.919, 18.307,
         19.675, 21.026, 22.362, 23.685, 24.996, 26.296, 27.587, 28.869, 30.144, 31.410,
         32.671, 33.924, 35.172, 36.415, 37.652, 38.885, 40.113, 41.337, 42.557, 43.773,
@@ -160,13 +200,17 @@ public class JSONStatsWrapper {
         113.145, 124.145, 135.480, 146.567};
         double degree = chiTable[degreesOfFreedom-1];
 
-        ///IMPORTANTE, CAMBIAR
-        ///IMPORTANTE, CAMBIAR
-        ///IMPORTANTE, CAMBIAR
         //If within the value
         if(chiSum<=degree) isNormal = true;
         else isNormal = false;
         return isNormal;
+    }
+
+    public boolean testExp(double mean, double stdDev){
+
+
+        boolean isExp = true;
+        return isExp;
     }
 
     /**
