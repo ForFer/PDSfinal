@@ -25,7 +25,7 @@ public class JSON {
     //Variables regarding the JSON file
     protected String path;
     protected String fileNa;
-    private String fileExtension = ".txt";
+    private String fileExtension = ".json";
 
     /**
      * Constructor using a path/name of file to create a JSON object
@@ -51,7 +51,7 @@ public class JSON {
                 //Store data into our array values
                 values = new double[jArray.size()];
                 for (int i = 0; i < jArray.size(); i++) {
-                    values[i] = (long) jArray.get(i);
+                    values[i] = (double) jArray.get(i);
                 }
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -84,11 +84,11 @@ public class JSON {
     /**
      * Method which creates a .json file given a JSON object instance
      */
-    public void outputFile(){
+    public void outputFile(int length){
         JSONObject jsonObject = new JSONObject();
 
         if(whichFuncReq.equals("_distribution_")){
-            for (int i = 0; i < names.length; i++) {
+            for (int i = 0; i < length; i++) {
                 jsonObject.put(names[i], values[i]);
             }
         }

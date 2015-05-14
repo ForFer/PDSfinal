@@ -27,7 +27,7 @@ public class JSONStatsWrapper {
      * and computes its characteristic values
      * @throws IOException
      */
-    public void verification() throws IOException {
+    public double[] verification() throws IOException {
 
         //We start by retrieving the array from the JSON
         double[] a = json.getValues();
@@ -35,9 +35,13 @@ public class JSONStatsWrapper {
         names[0] = "Distribution: ";
         names[1] = "Characteristic values";
         double values [];
+        int param = 0;
+        int distCode;
 
-        if(a.length<20 || a.length > 100000000){
-            errorOutput();
+
+
+        if(a.length < 20 || a.length > 10000000){
+            throw new IOException();
         }
         else {
             //Check distibution type
@@ -54,12 +58,16 @@ public class JSONStatsWrapper {
                     names[0] = names[0] + "Normal";
                     values[0] = mean; //Mean
                     values[1] = stdDev; //Standard Deviation
+                    distCode = 0;
+                    param = 2;
                     break;
 
                 case 1://If Exponential
                     names[0] = names[0] + "Exponential";
                     values = new double[1];
                     values[0] = 1/mean; //this is Rate
+                    param = 1;
+                    distCode = 1;
                     break;
 
                 case 2://If Binomial
@@ -67,26 +75,46 @@ public class JSONStatsWrapper {
                     values = new double [2];
                     values[0] = a.length; //This is n
                     values[1] = mean / a.length; //This is p
+                    param = 2;
+                    distCode = 2;
                     break;
 
                 case 3://If Student's T
                     names[0] = names[0] + "Student's T";
                     values = new double[1];
                     values[0] = a.length-1; //this is Degrees of freedom
+                    param = 1;
+                    distCode = 3;
                     break;
 
                 default://If not following any
                     names[0] = names[0] + "None";
                     values = new double[1];
                     values[0] = -1;
+                    param = 1;
+                    distCode = 4;
                     break;
+            }
+
+            double returnValues[];
+            if(param==1) {
+                returnValues = new double[2];
+                returnValues[0] =distCode;
+                returnValues[1] =values[0];
+            }
+            else{
+                returnValues = new double[3];
+                returnValues[0] =distCode;
+                returnValues[1] =values[0];
+                returnValues[2] = values[1];
             }
 
             //generate output JSON
             out = new JSON(values, names, 1);
             out.setFileName(json.getFileName());
             out.setPath(json.getPath());
-            out.outputFile();
+            out.outputFile(param);
+            return returnValues;
         }
     }
 
@@ -95,15 +123,15 @@ public class JSONStatsWrapper {
      * Computes the 95% prediction interval of the data series
      * @throws IOException
      */
-    public void predictionInterval() throws IOException {
+    public double[] predictionInterval() throws IOException {
 
         double[] a = json.getValues();
         String [] distr = {"Predicted interval"};
         int jsonSize = a.length;
 
 
-        if(a.length<30 || a.length > 100000000){
-            errorOutput();
+        if(a.length<20 || a.length > 100000000){
+            throw new IOException();
         }
         else {
             //Compute mean and std. deviation
@@ -120,7 +148,9 @@ public class JSONStatsWrapper {
             out = new JSON(bounds, distr, 2);
             out.setFileName(json.getFileName());
             out.setPath(json.getPath());
-            out.outputFile();
+            out.outputFile(2);
+            double []result = {bounds[0], bounds[1]};
+            return result;
         }
     }
 
@@ -162,24 +192,33 @@ public class JSONStatsWrapper {
         }
         //Store each unique integer into ArrayList, and frequency in another one
         boolean exists; //Avoid storing if already exists
-        ArrayList<Integer> uniques = new ArrayList<Integer>(0);
-        ArrayList<Integer> frequency  = new ArrayList<Integer>(0);
+        ArrayList<Integer> uniques = new ArrayList<Integer>();
+        ArrayList<Integer> frequency  = new ArrayList<Integer>();
 
         //Outer loop traverses all integers
         for(int i=0; i<intValues.length; i++){
             exists = false;
+            if(i==0) {
+                uniques.add(intValues[i]);
+                frequency.add(1);
+            }
+            else {
+                //Inner loop traverses ArrayList of uniques
+                for (int j = 0; j < uniques.size(); j++) {
+                    //If already in Arraylist, mark it and add to frequency
+                    if (intValues[i] == uniques.get(j)) {
+                        exists = true;
+                        int newfreq = frequency.get(j) + 1;
+                        frequency.set(j, newfreq);
+                    }
+                }
 
-            //Inner loop traverses ArrayList of uniques
-            for(int j=0; j<uniques.size(); j++){
-                //If already in Arraylist, mark it and add to frequency
-                if(intValues[i]==uniques.get(j)) {
-                    exists = true;
-                    int newfreq = frequency.get(j)+1;
-                    frequency.set(j, newfreq);
+                //If not marked, add to arraylist
+                if (exists == false) {
+                    uniques.add(intValues[i]);
+                    frequency.add(1);
                 }
             }
-            //If not marked, add to arraylist
-            if(exists==false) uniques.add(intValues[i]);
         }
 
         //We compute now the density function and Chi-square for each unique
@@ -248,7 +287,7 @@ public class JSONStatsWrapper {
             }
         }
         //Put result in arraylist
-        ArrayList<Double> result = new ArrayList<>(3);
+        ArrayList<Double> result = new ArrayList<>();
         result.add((double) isWhichDistribution);
         result.add(mean);
         result.add(stdDev);
